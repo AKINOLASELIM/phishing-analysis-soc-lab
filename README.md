@@ -7,7 +7,7 @@ That urgency is the trick. The attacker wants the victim to panic and click with
 I obtained this sample from the public phishing_pot repository on GitHub for practice and portfolio purposes.
 
 How I analysed it
-I started by uploading the raw .eml file to PhishTool. This tool reads the entire email automatically and breaks it down — into sections like headers, sender details, authentication results, and any URLs hidden inside the body. It saved me a lot of time compared to reading the raw file manually.
+I started by uploading the raw .eml file to PhishTool. This tool reads the entire email automatically and breaks it down  into sections like headers, sender details, authentication results, and any URLs hidden inside the body. It saved me a lot of time compared to reading the raw file manually.
 Once PhishTool gave me the key findings, I took each indicator and verified it using additional tools. I checked the sender IP on AbuseIPDB and ran the phishing URL through VirusTotal.
 Before writing anything down, I defanged the URL using CyberChef. Defanging means converting the URL into a safe format that cannot be accidentally clicked. This is standard practice in any SOC so that malicious links cannot do harm if a report gets forwarded or opened somewhere unexpected.
 
@@ -15,14 +15,14 @@ What PhishTool showed me
 The first thing that stood out was the sending server. PhishTool identified the email as coming from a machine called ubuntu-s-1vcpu-1gb-35gb-intel-sfo3-06 with the IP address 137.184.34.4.
 That server name is actually very revealing. It is the default name that DigitalOcean, which is a  cloud hosting company, gives to a basic rented virtual machine. The sfo3 part means it is sitting in DigitalOcean's San Francisco datacenter.
 Email authentication
-Next I looked at the authentication results. There are three standard checks that every email goes through — SPF, DKIM, and DMARC. Think of them as three different ways of verifying whether the person sending the email is who they claim to be.
+Next I looked at the authentication results. There are three standard checks that every email goes through SPF, DKIM, and DMARC. Think of them as three different ways of verifying whether the person sending the email is who they claim to be.
 All three failed on this email:
 SPF came back as TempError. This means the system could not even look up whether the sending server was authorised because the sender's DNS timed out. That kind of evasion is not accidental.
 DKIM was completely absent. The email had no digital signature at all, which means there was nothing to verify the sender's identity cryptographically.
 DMARC also came back as TempError, which follows from the SPF failure.
 When a real company like Bradesco sends an email, all three of these pass cleanly. Seeing all three fail at once is a strong signal that someone is pretending to be them.
 The hidden phishing link
-The body of the email was encoded in Base64 — essentially scrambled text that hides the content from a quick glance. PhishTool decoded it automatically and found the link the victim is supposed to click:
+The body of the email was encoded in Base64 essentially scrambled text that hides the content from a quick glance. PhishTool decoded it automatically and found the link the victim is supposed to click:
 Defanged URL: hXXps[://]blog1seguimentmydomaine2bra[.]me/
 That domain name tells its own story. It has random words jumbled together, uses a .me extension which is commonly abused by phishers, and has absolutely no connection to Bradesco. A legitimate bank uses their own official domain.
 
